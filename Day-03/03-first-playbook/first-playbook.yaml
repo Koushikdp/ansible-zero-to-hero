@@ -1,16 +1,36 @@
+
 ---
-- hosts: all
+- hosts: linux-host
   become: true
   tasks:
-    - name: Install apache httpd
+    - name: Update apt cache and install apache2
       ansible.builtin.apt:
         name: apache2
         state: present
         update_cache: yes
-    - name: Copy file with owner and permissions
+
+    - name: Copy index.html to /var/www/html with correct permissions
       ansible.builtin.copy:
-        src: index.html
-        dest: /var/www/html
+        src: ./index.html
+        dest: /var/www/html/index.html
         owner: root
         group: root
         mode: '0644'
+
+- hosts: windows-host
+  tasks:
+    - name: Ensure IIS is installed
+      ansible.windows.win_feature:
+        name: Web-Server
+        state: present
+
+    - name: Ensure Default Document module is installed
+      ansible.windows.win_feature:
+        name: Web-Default-Doc
+        state: present
+
+    - name: Copy index.html to IIS web root
+      ansible.windows.win_copy:
+        src: ./index.html
+        dest: C:\inetpub\wwwroot\index.html
+        force: yes
